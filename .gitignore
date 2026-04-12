@@ -14,3 +14,6 @@ videos/
 *.zip
 *.tar
 *.gz
+
+# my script
+run_gpu.bat
