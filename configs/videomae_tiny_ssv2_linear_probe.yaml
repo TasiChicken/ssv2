@@ -1,0 +1,48 @@
+# VideoMAE Linear Probe Config
+# Stage 2 evaluation: frozen encoder + single linear head.
+# Inherits the same data/model settings as fine-tuning;
+# only the `linear_probe` block is new.
+
+# ── Data ──────────────────────────────────────────────────────────────────────
+data:
+  root: /path/to/ssv2
+  anno_train: /path/to/ssv2/anno/train.csv
+  anno_val: /path/to/ssv2/anno/val.csv
+  num_frames: 16
+  sampling_rate: 2
+  input_size: 224
+  num_workers: 8
+
+# ── Model ─────────────────────────────────────────────────────────────────────
+model:
+  arch: vit_tiny          # same encoder as pre-training
+  patch_size: 16
+  tubelet_size: 2
+  num_classes: 174        # SSv2
+
+# ── Linear Probe (replaces `finetune` block) ──────────────────────────────────
+linear_probe:
+  # Pre-trained encoder to freeze
+  pretrain_ckpt: output/pretrain/checkpoint_best.pth
+
+  # Output
+  output_dir: output/linear_probe
+
+  # Optimisation
+  # LR can usually be set much higher than fine-tuning because only one layer
+  # is updated; scale linearly with effective batch size if needed.
+  epochs: 30
+  batch_size: 256
+  gradient_accumulation: 1       # effective_bs = batch_size * gradient_accumulation
+  lr: 1.0e-3
+  min_lr: 1.0e-6
+  weight_decay: 0.0              # L2 reg typically off for linear probe
+  warmup_epochs: 5
+
+  # Loss
+  label_smoothing: 0.0           # keep loss clean for linear eval
+
+  # Misc
+  use_amp: true
+  log_freq: 50                   # steps between console prints
+  save_freq: 5                   # epochs between checkpoint saves

@@ -577,3 +577,30 @@ def build_finetune_model(config):
         num_frames=cfg['num_frames'],
     )
     return model
+
+def build_linear_probe_model(config, pretrain_path=None):
+    """
+    Build a frozen VisionTransformerForFinetune + a fresh linear head.
+    Only model.head is trainable; the entire encoder is frozen.
+    """
+    # Reuse the same constructor as fine-tuning
+    model = build_finetune_model(config)
+
+    # Load pre-trained encoder weights
+    import os
+    if pretrain_path and os.path.exists(pretrain_path):
+        print(f"  Loading pre-trained weights from: {pretrain_path}")
+        model.load_pretrained(pretrain_path)
+    else:
+        print("  WARNING: No pre-trained weights loaded.")
+
+    # Freeze the entire model (encoder + original head)
+    for param in model.parameters():
+        param.requires_grad = False
+
+    # Replace head with a fresh, trainable linear layer
+    # in_features == embed_dim, confirmed from VisionTransformerForFinetune
+    model.head = nn.Linear(model.head.in_features, config['model']['num_classes'])
+    # model.head is now the only module with requires_grad=True
+
+    return model
