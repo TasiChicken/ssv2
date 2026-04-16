@@ -1,0 +1,61 @@
+# VideoMAE-Tiny configuration for SSv2
+
+model:
+  img_size: 112
+  patch_size: 16
+  tubelet_size: 2
+  num_frames: 8
+  num_classes: 174
+  encoder_embed_dim: 192
+  encoder_depth: 6
+  encoder_num_heads: 3
+  decoder_embed_dim: 96
+  decoder_depth: 2
+  decoder_num_heads: 3
+  mlp_ratio: 4.0
+  qkv_bias: true
+  drop_rate: 0.0
+  attn_drop_rate: 0.0
+  drop_path_rate: 0.1
+
+masking:
+  ratio: 0.9  # 90% masking (VideoMAE default)
+  mode: flow_guided_persistent  # 'tube' (original) or 'flow_guided_persistent'
+
+data:
+  root_dir: ./
+  video_dir: ./videos
+  train_json: ./labels/train.json
+  val_json: ./labels/validation.json
+  labels_json: ./labels/labels.json
+  num_workers: 2
+  subset_size: 20000  # use 20K subset for training
+  val_subset_size: 2000  # use 2K subset for validation
+
+pretrain:
+  epochs: 0
+  batch_size: 2
+  gradient_accumulation: 8
+  lr: 1.5e-4
+  min_lr: 1.0e-5
+  weight_decay: 0.05
+  warmup_epochs: 10
+  use_amp: true
+  save_freq: 10
+  log_freq: 50
+  output_dir: ./output/pretrain/flow
+
+finetune:
+  epochs: 30
+  batch_size: 2
+  gradient_accumulation: 8
+  lr: 1.0e-3
+  min_lr: 1.0e-5
+  weight_decay: 0.05
+  warmup_epochs: 5
+  label_smoothing: 0.1
+  use_amp: true
+  save_freq: 5
+  log_freq: 50
+  pretrain_ckpt: null
+  output_dir: ./output/finetune/scratch
