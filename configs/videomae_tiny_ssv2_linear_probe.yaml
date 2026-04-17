@@ -5,21 +5,33 @@
 
 # ── Data ──────────────────────────────────────────────────────────────────────
 data:
-  root: /path/to/ssv2
-  anno_train: /path/to/ssv2/anno/train.csv
-  anno_val: /path/to/ssv2/anno/val.csv
-  num_frames: 16
-  sampling_rate: 2
-  input_size: 224
-  num_workers: 8
+  root_dir: ./
+  video_dir: ./videos
+  train_json: ./labels/train.json
+  val_json: ./labels/validation.json
+  labels_json: ./labels/labels.json
+  num_workers: 2
+  subset_size: 20000  # use 20K subset for training
+  val_subset_size: 2000  # use 2K subset for validation
 
 # ── Model ─────────────────────────────────────────────────────────────────────
 model:
-  arch: vit_tiny          # same encoder as pre-training
+  img_size: 112
   patch_size: 16
   tubelet_size: 2
-  num_classes: 174        # SSv2
-
+  num_frames: 8
+  num_classes: 174
+  encoder_embed_dim: 192
+  encoder_depth: 6
+  encoder_num_heads: 3
+  decoder_embed_dim: 96
+  decoder_depth: 2
+  decoder_num_heads: 3
+  mlp_ratio: 4.0
+  qkv_bias: true
+  drop_rate: 0.0
+  attn_drop_rate: 0.0
+  drop_path_rate: 0.1
 # ── Linear Probe (replaces `finetune` block) ──────────────────────────────────
 linear_probe:
   # Pre-trained encoder to freeze
