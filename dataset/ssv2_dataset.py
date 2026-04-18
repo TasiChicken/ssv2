@@ -118,6 +118,14 @@ class SSv2Dataset(Dataset):
         # Load video
         video_path = os.path.join(self.video_dir, f"{video_id}.webm")
 
+        meta = {
+            'index': idx,
+            'video_id': str(video_id),
+            'template': template,
+            'clean_template': clean_template,
+            'video_path': video_path,
+        }
+
         try:
             if self.use_decord:
                 frames = _load_video_decord(video_path, self.num_frames)
@@ -132,7 +140,8 @@ class SSv2Dataset(Dataset):
 
         # Apply transforms: [T, H, W, C] → [C, T, H, W]
         tensor = self.transform(frames)
-        return tensor, label
+        meta['load_error'] = ''
+        return tensor, label, meta
 
 
 class SSv2PretrainDataset(SSv2Dataset):
@@ -190,7 +199,7 @@ class SSv2PretrainDataset(SSv2Dataset):
         return gray  # [T, H, W]
 
     def __getitem__(self, idx):
-        tensor, _ = super().__getitem__(idx)
+        tensor, _, _ = super().__getitem__(idx)
 
         if self.masking_mode == 'flow_guided_persistent':
             gray = self._extract_gray_frames(tensor)
